@@ -32,7 +32,8 @@ public class UsersService {
 			}
 			else
 			{
-				U.setRole(1);		//Setting default role to the new user
+				if(U.getRole() <= 0)
+					U.setRole(1);		//Setting default role to the new user
 				U.setStatus(1);		//Make the status of the user as active
 				
 				UR.save(U);			//Insert into the database table (users)
@@ -71,7 +72,40 @@ public class UsersService {
 		}
 		return response;
 	}
-	
+
+	public Object generateToken(Map<String, Object> data)
+	{
+		Map<String, Object> response = new HashMap<>();
+		try
+		{
+			response.put("code", 200);
+			response.put("jwt", JWT.generateJWT(data));
+		}
+		catch(Exception e)
+		{
+			response.put("code", 500);
+			response.put("message", e.getMessage());
+		}
+		return response;
+	}
+
+	public Object validateToken(String token)
+	{
+		Map<String, Object> response = new HashMap<>();
+		try
+		{
+			Map<String, Object> payload = JWT.validateJWT(token);
+			response.put("code", 200);
+			response.put("payload", payload);
+		}
+		catch(Exception e)
+		{
+			response.put("code", 500);
+			response.put("message", e.getMessage());
+		}
+		return response;
+	}
+
 	public Object uinfo(String token)
 	{
 		Map<String, Object> response = new HashMap<>();
@@ -85,7 +119,35 @@ public class UsersService {
 			
 	        response.put("code", 200);
 	        response.put("fullname", U.getFullname());
+	        response.put("role", U.getRole());
 	        response.put("menulist", menuList);
+		}catch(Exception e)
+		{
+			response.put("code", 500);
+			response.put("message", e.getMessage());
+		}
+		return response;
+	}
+	
+	public Object listUsers(String token)
+	{
+		Map<String, Object> response = new HashMap<>();
+		try
+		{
+			Map<String, Object> payload = JWT.validateJWT(token);
+	        String email = (String) payload.get("username");
+	        Users U = (Users) UR.findByEmail(email);
+	        
+	        if(U.getRole() != 3) // Assuming 3 is admin
+	        {
+	        	response.put("code", 403);
+	        	response.put("message", "Access denied");
+	        	return response;
+	        }
+	        
+	        List<Users> users = UR.findAll();
+	        response.put("code", 200);
+	        response.put("users", users);
 		}catch(Exception e)
 		{
 			response.put("code", 500);

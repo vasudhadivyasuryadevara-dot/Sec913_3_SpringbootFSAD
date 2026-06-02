@@ -31,6 +31,16 @@ public class JwtService {
 				.signWith(key)		
 				.compact();
 	}
+
+	public Object generateJWT(Map<String, Object> payload) throws Exception
+	{
+		return Jwts.builder()
+				.claims(payload)
+				.issuedAt(new Date())
+				.expiration(new Date(new Date().getTime() + 86400000))
+				.signWith(key)
+				.compact();
+	}
 	
 	//Validate JWT
 	public Map<String, Object> validateJWT(String token)throws Exception

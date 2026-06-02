@@ -34,6 +34,18 @@ public class UsersController {
 	{
 		return US.signin(data);
 	}
+
+	@PostMapping("/generate")
+	public Object generateJwt(@RequestBody Map<String, Object> data)
+	{
+		return US.generateToken(data);
+	}
+
+	@PostMapping("/validate")
+	public Object validateJwt(@RequestBody Map<String, Object> data)
+	{
+		return US.validateToken(data.get("token") == null ? "" : data.get("token").toString());
+	}
 	
 	@GetMapping("/uinfo")
 	public Object uinfo(@RequestHeader("Token") String token)
@@ -41,6 +53,11 @@ public class UsersController {
 		return US.uinfo(token);
 	}
 	
+	@GetMapping("/listusers")
+	public Object listusers(@RequestHeader("Token") String token)
+	{
+		return US.listUsers(token);
+	}
 	
 	@GetMapping("/test")
 	public String testMethod()

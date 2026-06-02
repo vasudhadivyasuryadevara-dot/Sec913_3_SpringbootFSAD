@@ -8,11 +8,17 @@ const App = () => {
     const finput = useRef();
     const [isProgress, setIsProgress] = useState(false);
     const [errorData, setErrorData] = useState({});
+    const [roles, setRoles] = useState([
+        { role: 1, rolename: "User" },
+        { role: 2, rolename: "Manager" },
+        { role: 3, rolename: "Admin" }
+    ]);
 
     const [signupData, setSignupData] = useState({
         fullname: "",
         phone: "",
         email: "",
+        role: "1",
         password: "",
         retypepassword: ""
     });
@@ -26,6 +32,10 @@ const App = () => {
         setTimeout(() => {finput.current?.focus();}, 0);
     }, [isSignin]);
 
+    useEffect(()=>{
+        callApi("GET", apibaseurl + "/roles", null, null, rolesResponseHandler);
+    }, []);
+
     function switchWindow(){
         setIsSignIn(prev => !prev);
         setErrorData({});
@@ -38,6 +48,7 @@ const App = () => {
             fullname: "",
             phone: "",
             email: "",
+            role: "1",
             password: "",
             retypepassword: ""
         });
@@ -58,6 +69,7 @@ const App = () => {
         if(signupData.fullname === "") errors.fullname = true;
         if(signupData.phone === "") errors.phone = true;
         if(signupData.email === "") errors.email = true;
+        if(signupData.role === "") errors.role = true;
         if(signupData.password === "") errors.password = true;
         if(signupData.retypepassword === "" || signupData.password !== signupData.retypepassword) errors.retypepassword = true;
         setErrorData(errors);
@@ -109,69 +121,114 @@ const App = () => {
             fullname: "",
             phone: "",
             email: "",
+            role: "1",
             password: "",
             retypepassword: ""
         });
         finput.current?.focus();
     }
 
+    function rolesResponseHandler(res){
+        if(res.code === 200 && Array.isArray(res.roles) && res.roles.length > 0)
+            setRoles(res.roles);
+    }
     return (
         <div className='app'>
-            <div className='container' key={isSignin ? "signin" : "signup"}>
+            <div className={isSignin ? 'container signin-card' : 'container signup-card'} key={isSignin ? "signin" : "signup"}>
+                {(
+                    <div className='auth-visual' aria-hidden='true'>
+                        <div className='graphic-orbit'></div>
+                        <span className='sparkle sparkle-one'></span>
+                        <span className='sparkle sparkle-two'></span>
+                        <span className='sparkle sparkle-three'></span>
+                        <span className='glow-dot glow-one'></span>
+                        <span className='glow-dot glow-two'></span>
+                        <div className='chat-bubble'><span></span></div>
+                        <div className='lock-bubble'><span></span></div>
+                        <div className='check-bubble'>✓</div>
+                        <div className='girl'>
+                            <div className='hair'></div>
+                            <div className='face'>
+                                <span className='eye left'></span>
+                                <span className='eye right'></span>
+                                <span className='smile'></span>
+                            </div>
+                            <div className='hoodie'></div>
+                            <div className='phone'></div>
+                        </div>
+                    </div>
+                )}
                 <div className='container-header'>
-                    <label>{isSignin ? "Login": "Create Account"}</label>
-                    <img src={imgurl + "logo.png"} alt='' />
+                    <label>{isSignin ? "Welcome Back!": "Create Account"}</label>
+                    <span>{isSignin ? "Login to continue" : "Sign up to get started"}</span>
                 </div>
                 <div className='container-content'>
-                    {isSignin? 
+                    {isSignin ? 
                         <>
                         <label>Username*</label>
                         <div className='input-group'>
-                            <img src={imgurl + "user.png"} />
-                            <input type='text' ref={finput} className={errorData.username ? 'error' : ''} placeholder='Enter email id' autoComplete='off' name="username" value={signinData.username} onChange={(e)=>handleSigninInput(e)} />
+                            <img src={imgurl + "user.png"} alt='user' />
+                            <input type='text' ref={finput} className={errorData.username ? 'error' : ''} placeholder='Username' autoComplete='off' name="username" value={signinData.username} onChange={(e)=>handleSigninInput(e)} />
                         </div>
                         <label>Password*</label>
                         <div className='input-group'>
-                            <img src={imgurl + "padlock.png"} />
-                            <input type='password' className={errorData.password ? 'error' : ''} placeholder='Enter password' name='password' value={signinData.password} onChange={(e)=>handleSigninInput(e)} />
+                            <img src={imgurl + "padlock.png"} alt='padlock' />
+                            <input type='password' className={errorData.password ? 'error' : ''} placeholder='Password' name='password' value={signinData.password} onChange={(e)=>handleSigninInput(e)} />
                         </div>
-                        <p>Forgot <span>Password?</span></p>
-                        <button onClick={()=>signin()}>Let's start</button>
-                        <label onClick={()=>switchWindow()}>Don't have an account? <span>Sign up</span></label>
+                        <button type='button' onClick={()=>signin()}>Submit</button>
+                        <div className='form-help-row forgot-row'>
+                            <span className='link-text'>Forgot Password?</span>
+                        </div>
+                        <div className='signup-switch-row'>
+                            <span>Don't have an account?</span>
+                            <button type='button' onClick={()=>switchWindow()}>Sign Up</button>
+                        </div>
                         </>
                     :
                         <>
                         <label>Full Name*</label>
                         <div className='input-group'>
-                            <img src={imgurl + "user.png"} />
-                            <input type='text' ref={finput} className={errorData.fullname ? 'error' : ''}  placeholder='Enter full name' autoComplete='off' name='fullname' value={signupData.fullname} onChange={(e)=>handleSignupInput(e)} />
+                            <img src={imgurl + "user.png"} alt='user' />
+                            <input type='text' ref={finput} className={errorData.fullname ? 'error' : ''}  placeholder='Full name' autoComplete='off' name='fullname' value={signupData.fullname} onChange={(e)=>handleSignupInput(e)} />
                         </div>
                         <label>Mobile Number*</label>
                         <div className='input-group'>
-                            <img src={imgurl + "phone.png"} />
-                            <input type='text' className={errorData.phone ? 'error' : ''} placeholder='Enter mobile number' autoComplete='off' name='phone' value={signupData.phone} onChange={(e)=>handleSignupInput(e)} />
+                            <img src={imgurl + "phone.png"} alt='phone' />
+                            <input type='text' className={errorData.phone ? 'error' : ''} placeholder='Mobile number' autoComplete='off' name='phone' value={signupData.phone} onChange={(e)=>handleSignupInput(e)} />
                         </div>
                         <label>Email Address*</label>
                         <div className='input-group'>
-                            <img src={imgurl + "email.png"} />
-                            <input type='text' className={errorData.email ? 'error' : ''} placeholder='Enter email id' autoComplete='off' name='email' value={signupData.email} onChange={(e)=>handleSignupInput(e)} />
+                            <img src={imgurl + "email.png"} alt='email' />
+                            <input type='text' className={errorData.email ? 'error' : ''} placeholder='Email address' autoComplete='off' name='email' value={signupData.email} onChange={(e)=>handleSignupInput(e)} />
+                        </div>
+                        <label>Role*</label>
+                        <div className='input-group'>
+                            <img src={imgurl + "user.png"} alt='role' />
+                            <select className={errorData.role ? 'error' : ''} name='role' value={signupData.role} onChange={(e)=>handleSignupInput(e)}>
+                                {roles.map((role)=>(
+                                    <option key={role.role} value={role.role}>{role.rolename}</option>
+                                ))}
+                            </select>
                         </div>
                         <label>Password*</label>
                         <div className='input-group'>
-                            <img src={imgurl + "padlock.png"} />
-                            <input type='password' className={errorData.password ? 'error' : ''} placeholder='Enter password' autoComplete='off' name='password' value={signupData.password} onChange={(e)=>handleSignupInput(e)} />
+                            <img src={imgurl + "padlock.png"} alt='padlock' />
+                            <input type='password' className={errorData.password ? 'error' : ''} placeholder='Password' autoComplete='off' name='password' value={signupData.password} onChange={(e)=>handleSignupInput(e)} />
                         </div>
                         <label>Re-type Password*</label>
                         <div className='input-group'>
-                            <img src={imgurl + "padlock.png"} />
-                            <input type='password' className={errorData.retypepassword ? 'error' : ''} placeholder='Re-type your password' autoComplete='off' name='retypepassword' value={signupData.retypepassword} onChange={(e)=>handleSignupInput(e)} />
+                            <img src={imgurl + "padlock.png"} alt='padlock' />
+                            <input type='password' className={errorData.retypepassword ? 'error' : ''} placeholder='Confirm password' autoComplete='off' name='retypepassword' value={signupData.retypepassword} onChange={(e)=>handleSignupInput(e)} />
                         </div>
-                        <button onClick={()=>signup()}>Register</button>
-                        <label onClick={()=>switchWindow()}>Already have an account? <span>Sign in</span></label>
+                        <button type='button' onClick={()=>signup()}>Register</button>
+                        <div className='form-help-row'>
+                            <span>Already have an account?</span>
+                            <span className='link-text' onClick={()=>switchWindow()}>Sign in</span>
+                        </div>
                         </>
                     }
                 </div>
-                <div className='container-footer'>Copyright @ 2026. All rights reserved.</div>
+                <div className='container-footer'>Copyright 2500030124</div>
             </div>
 
             <ProgressBar isProgress={isProgress}/>
